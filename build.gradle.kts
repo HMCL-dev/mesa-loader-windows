@@ -9,10 +9,10 @@ plugins {
     id("de.undercouch.download") version "5.6.0"
 }
 
-val mesaVersion = "25.0.3"
+val mesaVersion = "25.1.7"
 
 group = "org.glavo"
-version = mesaVersion + "-SNAPSHOT"
+version = mesaVersion //+ "-SNAPSHOT"
 description = "Mesa Loader for windows"
 
 val packageName = "org.glavo.mesa"
