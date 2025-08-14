@@ -16,6 +16,8 @@ Supported drivers:
 
 Requires Windows 10 (or later), Java 6 (or later).
 
+Based on Mesa builds provided by [mmozeiko/build-mesa](https://github.com/mmozeiko/build-mesa).
+
 ## License
 
 This project is licensed under the [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt) license.
