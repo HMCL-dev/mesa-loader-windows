@@ -55,7 +55,6 @@ tasks.jar {
 val mesaArches = listOf("x86", "x64", "arm64")
 val mesaDrivers = listOf("llvmpipe", "d3d12", "zink")
 
-val mesaFiles = listOf("libglapi.dll", "libgallium_wgl.dll", "opengl32.dll", "dxil.dll")
 val mesaDir = layout.buildDirectory.dir("download").get().dir("mesa-$mesaVersion").asFile
 
 val downloadMesa = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMesa") {
