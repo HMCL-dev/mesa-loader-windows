@@ -55,14 +55,14 @@ tasks.jar {
 val mesaArches = listOf("x86", "x64", "arm64")
 val mesaDrivers = listOf("llvmpipe", "d3d12", "zink")
 
-val mesaDir = layout.buildDirectory.dir("download").get().dir("mesa-$mesaVersion").asFile
+val mesaDir = layout.buildDirectory.dir("download/mesa-$mesaVersion")
 
-val downloadMesa = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMesa") {
+val downloadMesa by tasks.registering(de.undercouch.gradle.tasks.download.Download::class) {
     val urlBase = "https://github.com/mmozeiko/build-mesa/releases/download/$mesaVersion"
 
     for (arch in mesaArches) {
         for (driver in mesaDrivers) {
-            src("$urlBase/mesa-$driver-$arch-$mesaVersion.zip")
+            src("$urlBase/mesa-$driver-$arch-$mesaVersion.7z")
         }
     }
 
@@ -70,20 +70,108 @@ val downloadMesa = tasks.register<de.undercouch.gradle.tasks.download.Download>(
     overwrite(false)
 }
 
-val versionFile = mesaDir.resolve("version.properties")
-val createVersionFile = tasks.register("createVersionFile") {
-    doLast {
-        versionFile.parentFile.mkdirs()
-        versionFile.printWriter().use { writer ->
-            writer.println("loader.version=${project.version}")
+fun which(command: String): File? {
+    for (item in System.getenv("PATH")!!.split(File.pathSeparatorChar)) {
+        val file = File(item, command)
+        if (file.canExecute()) {
+            return file
         }
+    }
+
+    return null
+}
+
+
+interface InjectedExecOps {
+    @get:Inject val execOps: ExecOperations
+}
+
+val extractMesa by tasks.registering {
+    dependsOn(downloadMesa)
+
+    val injected = project.objects.newInstance<InjectedExecOps>()
+
+    val mesaArchiveNames = mesaArches.flatMap { arch ->
+        mesaDrivers.map { driver ->
+            "mesa-$driver-$arch-$mesaVersion"
+        }
+    }
+
+    inputs.files(mesaArchiveNames.map { name -> mesaDir.map { it.file("$name.7z") } })
+    outputs.dirs(mesaArchiveNames.map { name -> mesaDir.map { it.dir(name) } })
+
+    doLast {
+        val os = org.gradle.internal.os.OperatingSystem.current()
+
+        val sevenZ = if (os.isWindows) {
+            which("7z.exe") ?: run {
+                val programFiles = System.getenv("ProgramFiles") ?: "C:\\Program Files"
+
+                var file = File(programFiles, "7-Zip\\7z.exe")
+                if (file.canExecute())
+                    return@run file
+
+                file = File(programFiles, "7-Zip-Zstandard\\7z.exe")
+                if (file.canExecute())
+                    return@run file
+
+                return@run null
+            }
+        } else {
+            which("7zz") ?: which("7z")
+        }
+
+        if (sevenZ == null)
+            throw GradleException("7z not found in PATH")
+
+        for (name in mesaArchiveNames) {
+            val archiveFile = mesaDir.map { it.file("$name.7z") }.get().asFile
+            val outputDir = mesaDir.map { it.dir(name) }.get().asFile
+
+            outputDir.deleteRecursively()
+
+            injected.execOps.exec {
+                commandLine(
+                    sevenZ.absolutePath, "x", archiveFile.absolutePath, "-o${outputDir.absolutePath}", "-y"
+                )
+            }.assertNormalExitValue()
+        }
+    }
+}
+
+val versionFile = mesaDir.map { it.file("version.properties") }
+val createVersionFile = tasks.register("createVersionFile") {
+    outputs.file(versionFile)
+
+    doLast {
+        val file = versionFile.get().asFile
+
+        file.parentFile.mkdirs()
+        file.writeText("loader.version=${project.version}\n")
+    }
+}
+
+tasks.withType<Jar> {
+    dependsOn(extractMesa, createVersionFile)
+    manifest {
+        attributes(
+            "Premain-Class" to "$packageName.Loader"
+        )
+    }
+    into(packageName.replace('.', '/')) {
+        from(versionFile)
     }
 }
 
 fun Jar.addMesaDlls(arch: String) {
     for (driver in mesaDrivers) {
         into("$packageName.$arch.$driver".replace('.', '/')) {
-            from(zipTree(mesaDir.resolve("mesa-$driver-$arch-$mesaVersion.zip")))
+            val baseDir = mesaDir.map { it.dir("mesa-$driver-$arch-$mesaVersion") }
+
+            from(baseDir.map { it.file("opengl32.dll") })
+            if (driver == "d3d12") {
+                from(baseDir.map { it.file("dxil.dll") })
+            }
         }
     }
 }
@@ -94,7 +182,7 @@ tasks.jar {
     }
 }
 
-val jarTasks = listOf(tasks.jar) + mesaArches.map { arch ->
+for (arch in mesaArches) {
     tasks.register<Jar>("jar-$arch") {
         tasks.build.get().dependsOn(this)
         archiveClassifier.set(arch)
@@ -105,25 +193,11 @@ val jarTasks = listOf(tasks.jar) + mesaArches.map { arch ->
     }
 }
 
-for (jarTask in jarTasks) {
-    jarTask {
-        dependsOn(downloadMesa, createVersionFile)
-        manifest {
-            attributes(
-                "Premain-Class" to "$packageName.Loader"
-            )
-        }
-        into(packageName.replace('.', '/')) {
-            from(versionFile)
-        }
-    }
-}
-
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
 }
 
-tasks.withType<GenerateModuleMetadata>().configureEach {
+tasks.withType<GenerateModuleMetadata> {
     enabled = false
 }
 
@@ -133,6 +207,8 @@ configure<PublishingExtension> {
             groupId = project.group.toString()
             version = project.version.toString()
             artifactId = project.name
+
+            from(components["java"])
 
             for (arch in mesaArches) {
                 artifact(tasks["jar-$arch"])
