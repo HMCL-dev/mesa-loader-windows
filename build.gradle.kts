@@ -9,7 +9,7 @@ plugins {
     id("de.undercouch.download") version "5.6.0"
 }
 
-val mesaVersion = "25.1.7"
+val mesaVersion = "25.2.1"
 
 group = "org.glavo"
 version = mesaVersion + "-SNAPSHOT"
