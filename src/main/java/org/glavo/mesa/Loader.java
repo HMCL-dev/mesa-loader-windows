@@ -76,12 +76,31 @@ public final class Loader {
             name = name.toLowerCase(Locale.ROOT);
         }
 
-        boolean vulkan = "dzn".equals(name) || "lavapipe".equals(name);
+
+        String icdName;
+        switch (name) {
+            case "lavapipe":
+                icdName = "lvp";
+                break;
+            case "dzn":
+                icdName = "dzn";
+                break;
+            case "llvmpipe":
+            case "zink":
+            case "d3d12":
+                icdName = null;
+                break;
+            default:
+                System.err.println("[mesa-loader] Unsupported driver: " + name);
+                return;
+        }
+
+        boolean vulkan = icdName != null;
         String[] files;
         if (vulkan) {
             files = new String[]{
-                    name + "_icd.json",
-                    "vulkan_" + name + ".dll"
+                    icdName + "_icd.json",
+                    "vulkan_" + icdName + ".dll"
             };
         } else {
             files = new String[]{"opengl32.dll"};
