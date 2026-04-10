@@ -199,6 +199,12 @@ fun Jar.addMesaDlls(arch: MesaArch) {
                 RenderingApi.Vulkan -> {
                     from(baseDir.map { it.file("${driver.icdName}_icd.${arch.icdName}.json") }) {
                         rename { "${driver.icdName}_icd.json" }
+                        filter {
+                            it.replaceFirst(
+                                Regex("""\./(vulkan_[a-zA-Z0-9]+\.dll)"""),
+                                """.\\\\$1"""
+                            )
+                        }
                     }
                     from(baseDir.map { it.file("vulkan_${driver.icdName}.dll") })
                 }

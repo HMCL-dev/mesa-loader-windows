@@ -118,7 +118,7 @@ public final class Loader {
             return;
         }
 
-        String nativeDir = System.getProperty("mesa-loader.nativeDir");
+        String nativeDir = System.getProperty("org.glavo.mesa.loader.nativeDir");
 
         System.out.println("[mesa-loader] Mesa Driver: " + name);
         System.out.println("[mesa-loader] Mesa Version: " + loaderVersion);
