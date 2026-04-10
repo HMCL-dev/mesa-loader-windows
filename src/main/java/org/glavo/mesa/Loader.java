@@ -70,20 +70,21 @@ public final class Loader {
                 return;
         }
 
-        List<String> files = new ArrayList<>(2);
         if (name == null || name.isEmpty()) {
             name = "llvmpipe";
         } else {
             name = name.toLowerCase(Locale.ROOT);
         }
 
+        String[] files;
         if ("dzn".equals(name) || "lavapipe".equals(name)) {
-            files.add(name + "_icd.json");
-            files.add("vulkan_" + name + ".dll");
+            files = new String[]{
+                    name + "_icd.json",
+                    "vulkan_" + name + ".dll"
+            };
         } else {
-            files.add("opengl32.dll");
+            files = new String[]{"opengl32.dll"};
         }
-
 
         Properties properties = new Properties();
         try (Reader reader = new InputStreamReader(Loader.class.getResourceAsStream("version.properties"), "UTF-8")) {
