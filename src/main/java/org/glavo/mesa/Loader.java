@@ -99,11 +99,21 @@ public final class Loader {
             return;
         }
 
+        String nativeDir = System.getProperty("mesa-loader.nativeDir");
+
         System.out.println("[mesa-loader] Mesa Driver: " + name);
         System.out.println("[mesa-loader] Mesa Version: " + loaderVersion);
 
-        File targetDir = new File(System.getProperty("java.io.tmpdir"),
-                String.format("mesa-loader/%s/%s/%s", loaderVersion, arch, name)).getAbsoluteFile();
+        File targetDir;
+        if (nativeDir == null) {
+            targetDir = new File(System.getProperty("java.io.tmpdir"),
+                    String.format("mesa-loader/%s/%s/%s", loaderVersion, arch, name)).getAbsoluteFile();
+        } else {
+            targetDir = new File(nativeDir);
+        }
+
+        System.out.println("[mesa-loader] Native Directory: " + targetDir);
+
         targetDir.mkdirs();
 
         File lockFile = new File(targetDir, "lock");
