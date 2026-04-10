@@ -76,8 +76,9 @@ public final class Loader {
             name = name.toLowerCase(Locale.ROOT);
         }
 
+        boolean vulkan = "dzn".equals(name) || "lavapipe".equals(name);
         String[] files;
-        if ("dzn".equals(name) || "lavapipe".equals(name)) {
+        if (vulkan) {
             files = new String[]{
                     name + "_icd.json",
                     "vulkan_" + name + ".dll"
