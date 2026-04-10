@@ -12,7 +12,7 @@ plugins {
 val mesaVersion = "26.0.4"
 
 group = "org.glavo"
-version = mesaVersion + "-SNAPSHOT"
+version = mesaVersion // + "-SNAPSHOT"
 description = "Mesa Loader for windows"
 
 val packageName = "org.glavo.mesa"
