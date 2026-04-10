@@ -32,7 +32,7 @@ public final class Loader {
     public static void premain(String name) {
         if (!System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) {
             System.err.println("[mesa-loader] unsupported operating system: " + System.getProperty("os.name"));
-            System.exit(1);
+            return;
         }
 
         String arch;
