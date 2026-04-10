@@ -153,9 +153,11 @@ public final class Loader {
                         }
                     }
 
-                    String dllPath = targetFile.getAbsolutePath();
-                    System.out.println("[mesa-loader] Loading " + dllPath);
-                    System.load(dllPath);
+                    if (!vulkan) {
+                        String dllPath = targetFile.getAbsolutePath();
+                        System.out.println("[mesa-loader] Loading " + dllPath);
+                        System.load(dllPath);
+                    }
                 } catch (IOException e) {
                     System.err.println("[mesa-loader] Failed to extract " + file);
                     e.printStackTrace(System.err);
