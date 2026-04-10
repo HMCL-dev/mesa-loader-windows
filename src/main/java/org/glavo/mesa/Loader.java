@@ -77,7 +77,13 @@ public final class Loader {
             name = name.toLowerCase(Locale.ROOT);
         }
 
-        files.add("opengl32.dll");
+        if ("dzn".equals(name) || "lavapipe".equals(name)) {
+            // TODO: icd
+            files.add("vulkan_" + name + ".dll");
+        } else {
+            files.add("opengl32.dll");
+        }
+
 
         Properties properties = new Properties();
         try (Reader reader = new InputStreamReader(Loader.class.getResourceAsStream("version.properties"), "UTF-8")) {
