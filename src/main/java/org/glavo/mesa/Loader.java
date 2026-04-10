@@ -67,7 +67,6 @@ public final class Loader {
                 break;
             default:
                 System.err.println("[mesa-loader] Unsupported architecture: " + System.getProperty("os.arch"));
-                System.exit(1);
                 return;
         }
 
