@@ -77,9 +77,6 @@ public final class Loader {
             name = name.toLowerCase(Locale.ROOT);
         }
 
-        if ("d3d12".equals(name)) {
-            files.add("dxil.dll");
-        }
         files.add("opengl32.dll");
 
         Properties properties = new Properties();

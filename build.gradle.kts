@@ -195,11 +195,7 @@ fun Jar.addMesaDlls(arch: MesaArch) {
             when (driver.api) {
                 RenderingApi.OpenGL -> {
                     from(baseDir.map { it.file("opengl32.dll") })
-                    if (driver == MesaDriver.D3D12) {
-                        from(baseDir.map { it.file("dxil.dll") })
-                    }
                 }
-
                 RenderingApi.Vulkan -> {
                     from(baseDir.map { it.file("${driver.icdName}_icd.${arch.icdName}.json") })
                     from(baseDir.map { it.file("vulkan_${driver.icdName}.dll") })
