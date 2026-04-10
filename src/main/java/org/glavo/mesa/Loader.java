@@ -78,7 +78,7 @@ public final class Loader {
         }
 
         if ("dzn".equals(name) || "lavapipe".equals(name)) {
-            // TODO: icd
+            files.add(name + "_icd.json");
             files.add("vulkan_" + name + ".dll");
         } else {
             files.add("opengl32.dll");

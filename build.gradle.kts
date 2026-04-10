@@ -197,7 +197,9 @@ fun Jar.addMesaDlls(arch: MesaArch) {
                     from(baseDir.map { it.file("opengl32.dll") })
                 }
                 RenderingApi.Vulkan -> {
-                    from(baseDir.map { it.file("${driver.icdName}_icd.${arch.icdName}.json") })
+                    from(baseDir.map { it.file("${driver.icdName}_icd.${arch.icdName}.json") }) {
+                        rename { "${driver.icdName}_icd.json" }
+                    }
                     from(baseDir.map { it.file("vulkan_${driver.icdName}.dll") })
                 }
             }
