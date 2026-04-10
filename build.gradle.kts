@@ -52,26 +52,30 @@ tasks.jar {
     }
 }
 
-enum class MesaArch {
-    X86, X64, ARM64;
+enum class MesaArch(val archiveName: String, val icdName: String) {
+    X86("x86", "i686"),
+    X64("x64", "x86_64"),
+    ARM64("arm64", "aarch64");
 
-    val archiveName: String = name.lowercase()
 }
 
 enum class RenderingApi {
     OpenGL, Vulkan
 }
 
-enum class MesaDriver(val api: RenderingApi) {
-    LLVMPIPE(RenderingApi.OpenGL),
-    D3D12(RenderingApi.OpenGL),
-    ZINK(RenderingApi.OpenGL),
+enum class MesaDriver(val api: RenderingApi, val archiveName: String, val icdName: String? = null) {
+    LLVMPIPE(RenderingApi.OpenGL, "llvmpipe"),
+    D3D12(RenderingApi.OpenGL, "d3d12"),
+    ZINK(RenderingApi.OpenGL, "zink"),
 
-    LAVAPIPE(RenderingApi.Vulkan),
-    DZN(RenderingApi.Vulkan),
+    LAVAPIPE(RenderingApi.Vulkan, "lavapipe", "lvp"),
+    DZN(RenderingApi.Vulkan, "dzn", "dzn"),
     ;
 
-    val archiveName: String = name.lowercase()
+    init {
+        if (api == RenderingApi.Vulkan && icdName == null)
+            error("Vulkan driver $name must have an icdName")
+    }
 }
 
 val mesaDir = layout.buildDirectory.dir("download/mesa-$mesaVersion")
@@ -188,9 +192,18 @@ fun Jar.addMesaDlls(arch: MesaArch) {
         into("$packageName.${arch.archiveName}.${driver.archiveName}".replace('.', '/')) {
             val baseDir = mesaDir.map { it.dir("mesa-${driver.archiveName}-${arch.archiveName}-$mesaVersion") }
 
-            from(baseDir.map { it.file("opengl32.dll") })
-            if (driver == MesaDriver.D3D12) {
-                from(baseDir.map { it.file("dxil.dll") })
+            when (driver.api) {
+                RenderingApi.OpenGL -> {
+                    from(baseDir.map { it.file("opengl32.dll") })
+                    if (driver == MesaDriver.D3D12) {
+                        from(baseDir.map { it.file("dxil.dll") })
+                    }
+                }
+
+                RenderingApi.Vulkan -> {
+                    from(baseDir.map { it.file("${driver.icdName}_icd.${arch.icdName}.json") })
+                    from(baseDir.map { it.file("vulkan_${driver.icdName}.dll") })
+                }
             }
         }
     }
