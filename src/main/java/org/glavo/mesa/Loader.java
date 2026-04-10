@@ -140,7 +140,9 @@ public final class Loader {
 
                     File targetFile = new File(targetDir, file);
 
-                    if (!targetFile.exists() || targetFile.length() != input.available()) {
+                    if (targetFile.exists() && targetFile.length() == input.available()) {
+                        System.out.println("[mesa-loader] Skip " + file + " in " + targetDir);
+                    } else {
                         System.out.println("[mesa-loader] Extract " + file + " to " + targetDir);
                         try (FileOutputStream out = new FileOutputStream(targetFile)) {
                             int n;
