@@ -91,7 +91,7 @@ public final class Loader {
         String loaderVersion = properties.getProperty("loader.version");
         if (loaderVersion == null) {
             System.err.println("[mesa-loader] Missing loader version property in version.properties");
-            System.exit(1);
+            return;
         }
 
         System.out.println("[mesa-loader] Mesa Driver: " + name);
@@ -123,7 +123,7 @@ public final class Loader {
 
             if (lock == null) {
                 System.err.println("[mesa-loader] Could not get file lock");
-                System.exit(1);
+                return;
             }
 
             byte[] buffer = new byte[8192];
@@ -131,7 +131,7 @@ public final class Loader {
                 try (InputStream input = Loader.class.getResourceAsStream(arch + "/" + name + "/" + file)) {
                     if (input == null) {
                         System.err.println("[mesa-loader] " + file + " not exists");
-                        System.exit(1);
+                        return;
                     }
 
                     File targetFile = new File(targetDir, file);
