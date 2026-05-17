@@ -13,6 +13,8 @@ Supported drivers:
 * `llvmpipe`
 * `d3d12`
 * `zink`
+* `lavapipe`
+* `dzn`
 
 Requires Windows 10 (or later), Java 6 (or later).
 
