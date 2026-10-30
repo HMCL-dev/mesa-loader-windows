@@ -31,6 +31,8 @@ tasks.javadoc {
 
 tasks.compileJava {
     options.release.set(8)
+    // Keep the legacy release target without obsolete-option warnings on newer JDKs.
+    options.compilerArgs.add("-Xlint:-options")
 
     doLast {
         val tree = fileTree(destinationDirectory)
@@ -81,7 +83,7 @@ enum class MesaDriver(val api: RenderingApi, val archiveName: String, val icdNam
 
 val mesaDir = layout.buildDirectory.dir("download/mesa-$mesaVersion")
 
-val downloadMesa by tasks.registering(de.undercouch.gradle.tasks.download.Download::class) {
+val downloadMesa = tasks.register<de.undercouch.gradle.tasks.download.Download>("downloadMesa") {
     val urlBase = "https://github.com/mmozeiko/build-mesa/releases/download/$mesaVersion"
 
     for (arch in MesaArch.entries) {
@@ -111,7 +113,7 @@ interface InjectedExecOps {
     val execOps: ExecOperations
 }
 
-val extractMesa by tasks.registering {
+val extractMesa = tasks.register("extractMesa") {
     dependsOn(downloadMesa)
 
     val injected = project.objects.newInstance<InjectedExecOps>()
@@ -166,13 +168,15 @@ val extractMesa by tasks.registering {
 
 val versionFile = mesaDir.map { it.file("version.properties") }
 val createVersionFile = tasks.register("createVersionFile") {
+    val loaderVersion = project.version.toString()
+    inputs.property("loaderVersion", loaderVersion)
     outputs.file(versionFile)
 
     doLast {
         val file = versionFile.get().asFile
 
         file.parentFile.mkdirs()
-        file.writeText("loader.version=${project.version}\n")
+        file.writeText("loader.version=$loaderVersion\n")
     }
 }
 
