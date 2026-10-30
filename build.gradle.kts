@@ -10,7 +10,7 @@ plugins {
     id("org.glavo.gradle-wrapper-neo") version "0.2.0"
 }
 
-val mesaVersion = "26.0.4"
+val mesaVersion = "26.2.6"
 
 group = "org.glavo"
 version = mesaVersion // + "-SNAPSHOT"
